@@ -5,7 +5,8 @@ TP5 PAC - génération de clé RSA
 """
 
 from client import *
-from rsa import RSA
+from rsa import *
+
 
 
 NAME = 'monbailly'
@@ -14,14 +15,25 @@ URL = 'http://pac.bouillaguet.info/TP5/RSA-keygen/'
 server = Server(URL)
 
 # ----------------------------------------------------------------------------
-# Récupération du challenge
+# Récupération du challenge et génération des clés RSA
 # -------------------------
 response = server.query('challenge/'+ NAME)
 print(response)
 
-e = response['e']
-print('e : ' + str(e))
-rsa = RSA(e)
+rsa = RSA(response['e'])
 rsa.keyGen()
-print(rsa.p)
-print(rsa.q)
+
+
+dic = {'n':rsa.n, 'e':rsa.e}
+response = server.query('PK/' + NAME, dic)
+
+# ----------------------------------------------------------------------------
+# Déchiffrement du message 
+# -------------------------
+cipher = response['ciphertext']
+
+
+dic = {'m':rsa.decrypt(cipher)}
+response = server.query('confirmation/' + NAME, dic)
+print(response) # Status : OK
+
